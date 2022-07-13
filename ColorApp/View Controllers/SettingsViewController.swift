@@ -23,9 +23,7 @@ class SettingsViewController: UIViewController {
     @IBOutlet weak var greenTextField: UITextField!
     @IBOutlet weak var blueTextField: UITextField!
     
-    var redColor: Float!
-    var greenColor: Float!
-    var blueColor: Float!
+    var currentColor: UIColor!
     
     var delegate: SettingsViewControllerDelegate!
     
@@ -33,16 +31,12 @@ class SettingsViewController: UIViewController {
         super.viewDidLoad()
         
         colorView.layer.cornerRadius = 20
-        colorView.backgroundColor = UIColor(
-            red: CGFloat(redColor),
-            green: CGFloat(greenColor),
-            blue: CGFloat(blueColor),
-            alpha: 1
-        )
         
-        redSlider.value = redColor
-        greenSlider.value = greenColor
-        blueSlider.value = blueColor
+        let ciColor = CIColor(color: currentColor)
+        
+        redSlider.value = Float(ciColor.red)
+        greenSlider.value = Float(ciColor.green)
+        blueSlider.value = Float(ciColor.blue)
         
         redTextField.delegate = self
         greenTextField.delegate = self
@@ -77,11 +71,8 @@ class SettingsViewController: UIViewController {
     @IBAction func doneButtonPressed() {
         view.endEditing(true)
         
-        delegate.setBackgroundColor(
-            red: redSlider.value,
-            green: greenSlider.value,
-            blue: blueSlider.value
-        )
+        guard let color = colorView.backgroundColor else { return }
+        delegate.setBackgroundColor(backgroundColor: color)
         
         dismiss(animated: true)
     }
@@ -130,7 +121,7 @@ class SettingsViewController: UIViewController {
         guard let value = Float(text) else { return }
         if value >= 0 && value <= 1 {
             label.text = text
-            slider.value = value
+            slider.setValue(value, animated: true)
             setColor()
         } else {
             showAlert(textfield: textField, label: label)
@@ -154,6 +145,7 @@ class SettingsViewController: UIViewController {
         let toolBar = UIToolbar()
         toolBar.sizeToFit()
         
+        let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
         let doneButton = UIBarButtonItem(
             title: "Done",
             style: .done,
@@ -161,7 +153,7 @@ class SettingsViewController: UIViewController {
             action: #selector(hideKeyboard)
         )
         
-        toolBar.setItems([doneButton], animated: false)
+        toolBar.setItems([flexibleSpace, doneButton], animated: false)
         
         redTextField.inputAccessoryView = toolBar
         greenTextField.inputAccessoryView = toolBar
